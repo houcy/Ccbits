@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <script src="components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="lib/jquery-2.2.1.min.js"></script>
+  <script src="launcher.js"></script>
+  <script>
+  function getUrlParam(name, defaultValue) {
+    var val = location.search.match(new RegExp('[?&]' + name + '=([^&]+)'));
+    return val ? decodeURIComponent(val[1].replace(/\+/g, '%20')) : defaultValue;
+  }
+
+  window.addEventListener('load', function() {
+    var url = window.location.href.split('#')[0],
+      dataStr = localStorage.getItem(url);
+
+    if (dataStr) {
+      var config = JSON.parse(dataStr),
+        tpl = getUrlParam('tpl', (config.tpl || 'default'));
+
+      launcher.loadTemplate('./templates/' + tpl + '.html', function (data) {
+
+        // Load translation
+        window.MSG = {};
+        $('head').append('<script src="msg/' + config.lang + '.js' + '"><\/script>');
+        if (config.page !== 'index') {
+          $('head').append('<script src="msg/' + config.page + '/' + config.lang + '.js' + '"><\/script>');
+        }
+
+        data.body = launcher.translate(data.body, window.MSG);
+        data.body = launcher.injectMedia(data.body);
+        data.head = launcher.injectDependencies(data.head);
+
+        $.extend(config.data, data);
+        launcher.jsbin(config);
+      });
+    }
+  });
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
